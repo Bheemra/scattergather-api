@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7b44361c-bf78-46d0-9e4e-5607e20f79c7" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="ef5dc89a-d7d4-4322-a55b-a482802adba1" />
+	<flow name="choice-scatter-apiFlow" doc:id="34f537b7-e258-44fc-9616-8c304d8fc6e1" initialState="stopped">
+		<scheduler doc:name="Scheduler" doc:id="097daf1e-b163-4cbd-bb5b-546b9f7ce43b" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="Logger" doc:id="1ef91cdb-2940-4b2b-8dc9-f2843da8aaa7" message="flow started"/>
+		<file:read doc:id="a1decec7-cf2e-4eeb-bbe0-2d8b7527c4cf" config-ref="File_Config" path="C:\Users\bheem\OneDrive\Desktop\read\Dev\application.json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="206594d7-9375-4396-82f1-4ba68bccc74f" message="file read success"/>
+		<choice doc:name="Choice" doc:id="cfba3c6c-10c4-4120-b396-9ba215c02a89" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="744b6fcf-1563-4181-8de4-cb8cdf1e385f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA["Fetching success"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="f0a5e1c4-24cd-43cb-8a2a-d75e3e2b47b3" message="file read success"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="e06b27c3-cf1c-4a8c-aa12-7cad97d44f29" >
+					<ee:message >
+						<ee:set-payload ><![CDATA["error"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="8ce85fe1-4703-4fd9-9513-fa7a34597e05" message="error there is no data::::::::::::#[attributes.fileName]"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="choice-scatter-apiFlow1" doc:id="14cdc86d-5af9-4fd1-b278-81e7dda69fc2" >
+		<http:listener doc:name="Listener" doc:id="4a801466-2914-4e19-861d-867c34998bfe" config-ref="HTTP_Listener_config" path="/Scattergather"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1c9bd845-dbc9-4210-a49a-4b9f17e894d8" message="flow started"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="6efb2e31-10fe-4506-8e58-27057345b7a3" />
+		<set-variable value="cat" doc:name="Animal1 cat" doc:id="c3cd0489-fae8-487c-91c9-55cfff5f44f2" variableName="Animal1"/>
+		<set-variable value="dog" doc:name="Animal2 dog" doc:id="9b1685ce-786c-4c75-8902-579862dc7652" variableName="Animal2"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f6453bab-31ea-4b50-b7bf-d7a7ab845c64" >
+			<route >
+				<set-variable value="Monkey" doc:name="Animal1 monkey" doc:id="bd18fa6e-fb08-4de5-9877-1fced981ea36" variableName="Animal1"/>
+				<ee:transform doc:name="Transform Message" doc:id="3552f33b-6e86-4a77-a8e1-c6e9506c0402" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"hi" ++ payload.colour]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="vars.anmial" doc:id="322d15ba-f84d-4b4d-b484-85c28425a4f0" message="print anilmal:::::::::::::#[vars.Animal1]"/>
+			</route>
+			<route >
+				<set-variable value="Lion" doc:name="Animal2 Lion" doc:id="56a11849-62ed-4b6f-8504-52ecae360aba" variableName="Animal2"/>
+				<ee:transform doc:name="Transform Message" doc:id="6f050e63-d4e0-4330-b7bd-6da47c0d7980" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"He" ++ payload.secondname]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="vars.anmial" doc:id="44805d53-a228-4fe8-a20d-7c869ee13290" message="print anilmal:::::::::::::#[vars.Anima2]"/>
+			</route>
+			<route >
+				<set-variable value="Horse" doc:name="Animal3" doc:id="fd27c754-1835-4977-9781-760ed71fc93b" variableName="Animal3"/>
+				<ee:transform doc:name="Transform Message" doc:id="965be80d-e91b-40dd-a991-df28a46c164f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Hi" ++ payload.firstname]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="vars.anmial" doc:id="338be091-4697-42dd-bd42-6d8c05896d7c" message="print anilmal:::::::::::::#[vars.Animal3]"/>
+			</route>
+		</scatter-gather>
+		<logger level="INFO" doc:name="Logger" doc:id="4f934d20-bf16-4934-98eb-6ddce6444a19" message="print animals:::::::::::::#[vars.Animal1]  #[vars.Animal2] #[vars.Animal3]"/>
+		<ee:transform doc:name="Transform Message" doc:id="24d81dd6-a614-4dc9-8d3e-c457adf11ac8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
